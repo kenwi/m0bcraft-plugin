@@ -1,0 +1,11 @@
+name: m0bcraft
+version: '${project.version}'
+main: services.m0b.m0bcraft.M0bcraft
+api-version: 1.15
+author: m0b
+
+commands:
+  map:
+    description: Shows the URL of the continuously generated world map
+    usage: |
+           /<command>
