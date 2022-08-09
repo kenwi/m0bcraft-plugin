@@ -6,28 +6,41 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
-public class EventListener implements Listener {
+public class PlayerEventListener implements Listener {
     LogService logService;
 
-    public EventListener(LogService logService) {
+    public PlayerEventListener(LogService logService) {
         this.logService = logService;
+        logService.info("Listening to PlayerEvents");
     }
 
     private void writeLog(String name, String message) {
         logService.writeLog(name, message);
+    }
+
+    @EventHandler
+    public void OnEntityPickupItemEvent(EntityPickupItemEvent event) {
+        try {
+            if(event.getEntity().getType() == EntityType.PLAYER) {
+                LivingEntity entity = event.getEntity();
+                String playerName = entity.getName();
+                String message = event.getEventName() + " " + event.getItem().getName();
+
+                writeLog(playerName, message);
+            }
+        }
+        catch (Exception ex){
+            logService.info("An error occurred.");
+            ex.printStackTrace();
+        }
     }
 
     @EventHandler
@@ -42,36 +55,6 @@ public class EventListener implements Listener {
             file.write(message);
             file.close();
         } catch (IOException ex){
-            logService.info("An error occurred.");
-            ex.printStackTrace();
-        }
-    }
-
-    @EventHandler
-    public void OnBlockBreakEvent(BlockBreakEvent event) {
-        try {
-            String playerName = event.getPlayer().getDisplayName();
-            String message = event.getEventName() + " "  + event.getBlock().getType().name();
-
-            writeLog(playerName, message);
-        } catch (Exception ex){
-            logService.info("An error occurred.");
-            ex.printStackTrace();
-        }
-    }
-
-    @EventHandler
-    public void OnEntityPickupItemEvent(EntityPickupItemEvent event) {
-        try {
-            if(event.getEntity().getType() == EntityType.PLAYER) {
-                 LivingEntity entity = event.getEntity();
-                 String playerName = entity.getName();
-                 String message = event.getEventName() + " " + event.getItem().getName();
-
-                 writeLog(playerName, message);
-            }
-        }
-        catch (Exception ex){
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
@@ -115,10 +98,10 @@ public class EventListener implements Listener {
     public void OnPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
         try {
             String playerName = event.getPlayer().getDisplayName();
-            String random = UUID.randomUUID().toString();
-
             Advancement advancement = event.getAdvancement();
-            String message = " made the advancement " + advancement.toString();
+            String message = " made the advancement " + advancement;
+
+            writeLog(playerName, message);
         } catch (Exception ex){
             logService.info("An error occurred.");
             ex.printStackTrace();
@@ -184,26 +167,5 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void OnInventoryEvent(InventoryEvent event) {
-        String message =  event.getEventName();
 
-        event.getViewers().forEach(viewer -> {
-            String playerName = viewer.getName();
-            writeLog(playerName, message);
-        });
-    }
-
-    @EventHandler
-    public void OnInventoryOpenEvent(InventoryOpenEvent event) {
-        try {
-            String playerName = event.getPlayer().getName();
-            String message = event.getEventName() + " " + event.getInventory();
-
-            writeLog(playerName, message);
-        } catch (Exception ex){
-            logService.info("An error occurred.");
-            ex.printStackTrace();
-        }
-    }
 }

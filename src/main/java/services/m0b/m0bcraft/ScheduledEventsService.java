@@ -19,14 +19,12 @@ public class ScheduledEventsService {
     }
 
     public void registerEvents() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                String playerName = player.getDisplayName();
-                String location = player.getLocation().toString();
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> {
+            String playerName = player.getDisplayName();
+            String location = player.getLocation().toString();
 
-                logService.writeLog(playerName, location);
-            });
-        }, 0L, 20 * 10);
+            logService.writeLog(playerName, location);
+        }), 0L, 20 * 10);
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
             try (Stream<Path> paths = Files.walk(Paths.get("mc-inbound"))) {
@@ -34,13 +32,7 @@ public class ScheduledEventsService {
                     try {
                         byte[] bytes = Files.readAllBytes(file.toAbsolutePath());
                         String content = new String(bytes);
-
-                        int pos = content.indexOf(">");
-                        String message = content.substring(pos + 1);
-                        String sender = content.substring(1, pos);
-                        Bukkit.getOnlinePlayers().forEach(player -> {
-                            player.sendMessage(content);
-                        });
+                        Bukkit.getOnlinePlayers().forEach(player -> player.sendMessage(content));
                         Files.deleteIfExists(file.toAbsolutePath());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -52,5 +44,7 @@ public class ScheduledEventsService {
                 ex.printStackTrace();
             }
         }, 0L, 20);
+
+        logService.info("Started ScheduledEventsService");
     }
 }

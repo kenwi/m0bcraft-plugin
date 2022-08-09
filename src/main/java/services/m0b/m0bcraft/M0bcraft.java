@@ -1,18 +1,9 @@
 package services.m0b.m0bcraft;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.stream.Stream;
 
 public final class M0bcraft extends JavaPlugin {
     LogService logService;
@@ -24,11 +15,15 @@ public final class M0bcraft extends JavaPlugin {
         scheduledEventsService = new ScheduledEventsService(logService, this);
         scheduledEventsService.registerEvents();
 
-        this.getCommand("map")
-                .setExecutor(new MapCommand());
+        PluginManager pluginManager = Bukkit.getPluginManager();
+        pluginManager.registerEvents(new PlayerEventListener(logService), this);
+        pluginManager.registerEvents(new BlockEventListener(logService), this);
+        pluginManager.registerEvents(new InventoryEventListener(logService), this);
 
-        Bukkit.getPluginManager()
-                .registerEvents(new EventListener(logService), this);
+        PluginCommand command = this.getCommand("map");
+        if(command != null) {
+            command.setExecutor(new MapCommand());
+        }
 
         getLogger().info("Started");
     }
