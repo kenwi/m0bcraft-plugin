@@ -15,68 +15,29 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
 public final class M0bcraft extends JavaPlugin {
+    LogService logService;
+    ScheduledEventsService scheduledEventsService;
 
     @Override
     public void onEnable() {
-        this.getCommand("map").setExecutor(new MapCommand());
+        logService = new LogService(this);
+        scheduledEventsService = new ScheduledEventsService(logService, this);
+        scheduledEventsService.registerEvents();
 
-        Bukkit.getPluginManager().registerEvents(new EventListener(getLogger()), this);
+        this.getCommand("map")
+                .setExecutor(new MapCommand());
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                String playerName = player.getDisplayName();
-                String location = player.getLocation().toString();
-
-                writeLog(playerName, location);
-            });
-        }, 0L, 20 * 10);
-
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            try (Stream<Path> paths = Files.walk(Paths.get("mc-inbound"))) {
-                paths.filter(Files::isRegularFile).forEach(file -> {
-                    try {
-                        byte[] bytes = Files.readAllBytes(file.toAbsolutePath());
-                        String content = new String(bytes);
-
-                        int pos = content.indexOf(">");
-                        String message = content.substring(pos + 1);
-                        String sender = content.substring(1, pos);
-                        Bukkit.getOnlinePlayers().forEach(player -> {
-                            player.sendMessage(content);
-                        });
-                        Files.deleteIfExists(file.toAbsolutePath());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-
-            } catch (IOException ex) {
-                System.out.println("An error occurred.");
-                ex.printStackTrace();
-            }
-        }, 0L, 20);
+        Bukkit.getPluginManager()
+                .registerEvents(new EventListener(logService), this);
 
         getLogger().info("Started");
     }
 
-    private void writeLog(String name, String message) {
-        try {
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("[dd/MM/yyyy] [HH:mm:ss]");
-            LocalDateTime now = LocalDateTime.now();
-            String formattedDate = dtf.format(now);
-
-            FileWriter file = new FileWriter("mc-logs/" + name + ".txt", true);
-            file.append("[" + formattedDate + "] " + message + "\n");
-            file.close();
-
-        } catch (Exception ex) {
-            System.out.println("An error occurred.");
-            ex.printStackTrace();
-        }
-    }
-
     @Override
     public void onDisable() {
+        logService = null;
+        scheduledEventsService = null;
+
         getLogger().info("Stopped");
     }
 }

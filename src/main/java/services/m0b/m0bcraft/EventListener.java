@@ -13,37 +13,21 @@ import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class EventListener implements Listener {
-    Logger logger;
-    public EventListener(Logger logger) {
-        this.logger = logger;
+    LogService logService;
 
-        File directory = new File("mc-outbound/");
-        if(!directory.exists()) {
-            directory.mkdirs();
-            logger.info("Outgoing message directory does not exist. Creating " + Paths.get("mc-outbound"));
-        }
+    public EventListener(LogService logService) {
+        this.logService = logService;
+    }
 
-        directory = new File("mc-inbound/");
-        if(!directory.exists()) {
-            directory.mkdirs();
-            logger.info("Incoming message directory does not exist. Creating " + Paths.get("mc-inbound"));
-        }
-
-        directory = new File("mc-logs/");
-        if(!directory.exists()) {
-            directory.mkdirs();
-            logger.info("Log directory does not exist. Creating " + Paths.get("mc-logs"));
-        }
+    private void writeLog(String name, String message) {
+        logService.writeLog(name, message);
     }
 
     @EventHandler
@@ -58,7 +42,7 @@ public class EventListener implements Listener {
             file.write(message);
             file.close();
         } catch (IOException ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -71,7 +55,7 @@ public class EventListener implements Listener {
 
             writeLog(playerName, message);
         } catch (Exception ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -88,7 +72,7 @@ public class EventListener implements Listener {
             }
         }
         catch (Exception ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -104,7 +88,7 @@ public class EventListener implements Listener {
             }
         }
         catch (Exception ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -122,23 +106,7 @@ public class EventListener implements Listener {
 
             writeLog(playerName, message);
         } catch (Exception ex){
-            System.out.println("An error occurred.");
-            ex.printStackTrace();
-        }
-    }
-
-    private void writeLog(String name, String message) {
-        try {
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("[dd/MM/yyyy] [HH:mm:ss]");
-            LocalDateTime now = LocalDateTime.now();
-            String formattedDate = dtf.format(now);
-
-            FileWriter file = new FileWriter("mc-logs/" + name + ".txt", true);
-            file.append("[" + formattedDate + "] " + message + "\n");
-            file.close();
-
-        } catch (Exception ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -148,16 +116,11 @@ public class EventListener implements Listener {
         try {
             String playerName = event.getPlayer().getDisplayName();
             String random = UUID.randomUUID().toString();
-            String fileName = playerName + "-advancement-" + random;
-            FileWriter file = new FileWriter("mc-outbound/" + fileName + ".txt");
 
             Advancement advancement = event.getAdvancement();
-            String message = playerName + " has made the advancement " + advancement.toString();
-
-            // file.write(message);
-            // file.close();
-        } catch (IOException ex){
-            System.out.println("An error occurred.");
+            String message = " made the advancement " + advancement.toString();
+        } catch (Exception ex){
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -187,7 +150,7 @@ public class EventListener implements Listener {
             file.write(message);
             file.close();
         } catch (IOException ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -216,7 +179,7 @@ public class EventListener implements Listener {
             file.write(message);
             file.close();
         } catch (IOException ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
@@ -239,7 +202,7 @@ public class EventListener implements Listener {
 
             writeLog(playerName, message);
         } catch (Exception ex){
-            System.out.println("An error occurred.");
+            logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
