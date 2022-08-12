@@ -1,8 +1,9 @@
 package services.m0b.m0bcraft;
 
+import org.bukkit.Location;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.Block;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,7 +13,10 @@ import org.bukkit.event.player.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PlayerEventListener implements Listener {
     LogService logService;
@@ -26,22 +30,21 @@ public class PlayerEventListener implements Listener {
         logService.writeLog(name, message);
     }
 
-    @EventHandler
+    /*@EventHandler
     public void OnEntityPickupItemEvent(EntityPickupItemEvent event) {
         try {
-            if(event.getEntity().getType() == EntityType.PLAYER) {
+            if (event.getEntity().getType() == EntityType.PLAYER) {
                 LivingEntity entity = event.getEntity();
                 String playerName = entity.getName();
                 String message = event.getEventName() + " " + event.getItem().getName();
 
                 writeLog(playerName, message);
             }
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
-    }
+    }*/
 
     @EventHandler
     public void OnPlayerChatEvent(AsyncPlayerChatEvent event) {
@@ -54,7 +57,7 @@ public class PlayerEventListener implements Listener {
             String message = playerName + ": " + event.getMessage();
             file.write(message);
             file.close();
-        } catch (IOException ex){
+        } catch (IOException ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
@@ -63,18 +66,67 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void OnEntityDropItemEvent(EntityDropItemEvent event) {
         try {
-            if(event.getEntity().getType() == EntityType.PLAYER) {
-                String playerName = event.getEntity().getName();
-                String message = event.getEventName() + " " + event.getItemDrop().getName();
+            int id = event.getEntity().getEntityId();
+            String entityName = event.getEntity().getName();
+            String message = event.getEventName() + " "
+                    + entityName + "(" + id + ") " + "DROPS "
+                    + event.getItemDrop().getName() + " AT "
+                    + logService.LocationToString(event.getItemDrop().getLocation());
 
-                writeLog(playerName, message);
+            if (entityName.contains("Chicken")) {
+                Location location = event.getItemDrop().getLocation();
+                Collection<Entity> nearby = event.getItemDrop()
+                        .getWorld()
+                        .getNearbyEntities(location, 1, 1, 1);
+                int count = nearby.size();
+
+                AtomicInteger nearbyChickens = new AtomicInteger();
+                nearby.forEach(entity -> {
+                    if (entity.getName().contains("Chicken")) {
+                        nearbyChickens.getAndIncrement();
+                    }
+                    if (entity.getName().contains("Cow")) {
+                        if (new Random().nextDouble() > 0.5) {
+                            LivingEntity cow = (LivingEntity) event.getEntity();
+                            cow.damage(5000);
+                            logService.info("Damage Cow");
+                        }
+                    }
+                });
+
+                if (nearbyChickens.get() > 10) {
+                    LivingEntity chicken = (LivingEntity) event.getEntity();
+                    chicken.damage(50);
+                    logService.info("Damage Chicken");
+                }
+
+                logService.info(String.valueOf(nearbyChickens) + " / " + count);
             }
-        }
-        catch (Exception ex){
+
+            writeLog(entityName + "-" + id, message);
+        } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
     }
+
+    @EventHandler
+    public void OnEntityPickupItemEvent(EntityPickupItemEvent event) {
+        try {
+            int id = event.getEntity().getEntityId();
+            String entityName = event.getEntity().getName();
+            String message = event.getEventName() + " "
+                    + entityName + "(" + id + ") " + "PICKUP "
+                    + event.getItem().getName() + " AT "
+                    + logService.LocationToString(event.getItem().getLocation());
+
+            writeLog(entityName + "-" + id, message);
+        } catch (Exception ex) {
+            logService.info("An error occurred.");
+            ex.printStackTrace();
+        }
+    }
+
 
     @EventHandler
     public void OnPlayerInteractEvent(PlayerInteractEvent event) {
@@ -83,12 +135,14 @@ public class PlayerEventListener implements Listener {
             String message = event.getAction().name();
 
             Block block;
-            if((block = event.getClickedBlock()) != null) {
-                message += " " + block.getState().getLocation();
+            if ((block = event.getClickedBlock()) != null) {
+                message += " " + logService.LocationToString(block.getState().getLocation());
             }
 
             writeLog(playerName, message);
-        } catch (Exception ex){
+
+
+        } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
@@ -102,7 +156,7 @@ public class PlayerEventListener implements Listener {
             String message = " made the advancement " + advancement;
 
             writeLog(playerName, message);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
@@ -112,7 +166,7 @@ public class PlayerEventListener implements Listener {
     public void OnPlayerJoin(PlayerJoinEvent event) {
         try {
             boolean isPlayerOperator = event.getPlayer().isOp();
-            if(isPlayerOperator) {
+            if (isPlayerOperator) {
                 event.setJoinMessage("");
                 return;
             }
@@ -132,7 +186,7 @@ public class PlayerEventListener implements Listener {
 
             file.write(message);
             file.close();
-        } catch (IOException ex){
+        } catch (IOException ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
@@ -142,7 +196,7 @@ public class PlayerEventListener implements Listener {
     public void OnPlayerQuit(PlayerQuitEvent event) {
         try {
             boolean isPlayerOperator = event.getPlayer().isOp();
-            if(isPlayerOperator) {
+            if (isPlayerOperator) {
                 event.setQuitMessage("");
                 return;
             }
@@ -161,7 +215,7 @@ public class PlayerEventListener implements Listener {
 
             file.write(message);
             file.close();
-        } catch (IOException ex){
+        } catch (IOException ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
         }
