@@ -1,5 +1,6 @@
 package services.m0b.m0bcraft;
 
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -38,20 +39,36 @@ public class LogService {
         logger.info(message);
     }
 
+    public void writeLog(String message) {
+        try {
+            FileWriter file = new FileWriter("mc-logs/all.txt", true);
+            file.append(message + "\n");
+            file.close();
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public String LocationToString(Location location) {
+        return location.getBlockX() + " "
+                + location.getBlockY() + " "
+                + location.getBlockZ();
+    }
+
     public void writeLog(String name, String message) {
         try {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             LocalDateTime now = LocalDateTime.now();
             String formattedDate = dtf.format(now);
 
-            String logLine = "[" + formattedDate + "] " + "[" + name + "] "  + message + "\n";
+            String logLine = "[" + formattedDate + "] " + "[" + name + "] "  + message;
             FileWriter file = new FileWriter("mc-logs/" + name + ".txt", true);
-            file.append(logLine);
+            file.append(logLine + "\n");
             file.close();
 
-            file = new FileWriter("mc-logs/all.txt", true);
-            file.append(logLine);
-            file.close();
+            writeLog(logLine);
+
         } catch (Exception ex){
             System.out.println("An error occurred.");
             ex.printStackTrace();
