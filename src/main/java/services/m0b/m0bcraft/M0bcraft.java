@@ -5,12 +5,16 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+
 public final class M0bcraft extends JavaPlugin {
     LogService logService;
     ScheduledEventsService scheduledEventsService;
+    HashMap<String, Integer> counter;
 
     @Override
     public void onEnable() {
+        counter = new HashMap<>();
         logService = new LogService(this);
         scheduledEventsService = new ScheduledEventsService(logService, this);
         scheduledEventsService.registerEvents();
@@ -18,11 +22,15 @@ public final class M0bcraft extends JavaPlugin {
         PluginManager pluginManager = Bukkit.getPluginManager();
         pluginManager.registerEvents(new PlayerEventListener(logService), this);
         pluginManager.registerEvents(new BlockEventListener(logService), this);
-        pluginManager.registerEvents(new InventoryEventListener(logService), this);
+        pluginManager.registerEvents(new InventoryEventListener(logService, this, counter), this);
 
         PluginCommand command = this.getCommand("map");
         if(command != null) {
             command.setExecutor(new MapCommand());
+        }
+
+        if((command = getCommand("resetcounters")) != null){
+            command.setExecutor(new ResetCountersCommand(counter, logService));
         }
 
         getLogger().info("Started");

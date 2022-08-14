@@ -2,7 +2,6 @@ package services.m0b.m0bcraft;
 
 import org.bukkit.Location;
 import org.bukkit.advancement.Advancement;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -14,7 +13,6 @@ import org.bukkit.event.player.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,22 +27,6 @@ public class PlayerEventListener implements Listener {
     private void writeLog(String name, String message) {
         logService.writeLog(name, message);
     }
-
-    /*@EventHandler
-    public void OnEntityPickupItemEvent(EntityPickupItemEvent event) {
-        try {
-            if (event.getEntity().getType() == EntityType.PLAYER) {
-                LivingEntity entity = event.getEntity();
-                String playerName = entity.getName();
-                String message = event.getEventName() + " " + event.getItem().getName();
-
-                writeLog(playerName, message);
-            }
-        } catch (Exception ex) {
-            logService.info("An error occurred.");
-            ex.printStackTrace();
-        }
-    }*/
 
     @EventHandler
     public void OnPlayerChatEvent(AsyncPlayerChatEvent event) {
@@ -85,13 +67,6 @@ public class PlayerEventListener implements Listener {
                     if (entity.getName().contains("Chicken")) {
                         nearbyChickens.getAndIncrement();
                     }
-                    if (entity.getName().contains("Cow")) {
-                        if (new Random().nextDouble() > 0.5) {
-                            LivingEntity cow = (LivingEntity) event.getEntity();
-                            cow.damage(5000);
-                            logService.info("Damage Cow");
-                        }
-                    }
                 });
 
                 if (nearbyChickens.get() > 10) {
@@ -103,7 +78,7 @@ public class PlayerEventListener implements Listener {
                 logService.info(String.valueOf(nearbyChickens) + " / " + count);
             }
 
-            writeLog(entityName + "-" + id, message);
+            writeLog(entityName, message);
         } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
@@ -120,7 +95,7 @@ public class PlayerEventListener implements Listener {
                     + event.getItem().getName() + " AT "
                     + logService.LocationToString(event.getItem().getLocation());
 
-            writeLog(entityName + "-" + id, message);
+            writeLog(entityName, message);
         } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
@@ -131,17 +106,21 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void OnPlayerInteractEvent(PlayerInteractEvent event) {
         try {
-            String playerName = event.getPlayer().getDisplayName();
+            /*String playerName = event.getPlayer().getDisplayName();
             String message = event.getAction().name();
 
             Block block;
             if ((block = event.getClickedBlock()) != null) {
                 message += " " + logService.LocationToString(block.getState().getLocation());
-            }
+            }*/
+            String name = event.getPlayer().getName();
+            String message = event.getEventName() + " "
+                    + event.getAction().name() + " ";
 
-            writeLog(playerName, message);
+            if(event.getClickedBlock() != null)
+                    message += event.getClickedBlock().getType().name();
 
-
+            logService.writeLog(name, message);
         } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();

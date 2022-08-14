@@ -1,7 +1,6 @@
 package services.m0b.m0bcraft;
 
-import org.bukkit.block.BlockState;
-import org.bukkit.entity.Ageable;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -15,18 +14,23 @@ public class BlockEventListener implements Listener {
         logService.info("Listening to BlockEvents");
     }
 
-    private void writeLog(String name, String message) {
-        logService.writeLog(name, message);
-    }
-
     @EventHandler
     public void OnBlockGrowEvent(BlockGrowEvent event) {
         try {
+            boolean isAgeable = event.getBlock().getBlockData() instanceof Ageable;
+            if(!isAgeable)
+                return;
+
+            Ageable blockData = (Ageable) event.getBlock().getBlockData();
+            Ageable newBlockData = (Ageable) event.getNewState().getBlockData();
+
             String message = event.getEventName() + " "
                     + event.getNewState().getType().name() + " "
+                    + "Old Age: " + blockData.getAge() + " "
+                    + "New Age: " + newBlockData.getAge() + " "
                     + logService.LocationToString(event.getNewState().getLocation());
 
-            writeLog("BlockGrow", message);
+            logService.writeLog("BlockGrow", message);
         } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();
@@ -39,7 +43,7 @@ public class BlockEventListener implements Listener {
             String playerName = event.getPlayer().getDisplayName();
             String message = event.getEventName() + " " + event.getBlock().getType().name();
 
-            writeLog(playerName, message);
+            logService.writeLog(playerName, message);
         } catch (Exception ex) {
             logService.info("An error occurred.");
             ex.printStackTrace();

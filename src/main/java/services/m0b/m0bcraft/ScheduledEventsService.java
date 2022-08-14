@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 public class ScheduledEventsService {
     LogService logService;
     JavaPlugin plugin;
+    Random rng;
 
     public ScheduledEventsService(LogService logService, JavaPlugin plugin) {
         this.logService = logService;
@@ -26,8 +27,11 @@ public class ScheduledEventsService {
     }
 
     private boolean isDay() {
+        if(rng == null)
+            rng = new Random();
+
         long time = Bukkit.getWorld("world").getTime();
-        return time > 0 && time < 12300;
+        return time > 0 && time < (12300 -rng.nextInt(1000));
     }
 
     int i;
@@ -35,7 +39,7 @@ public class ScheduledEventsService {
     public void registerEvents() {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> {
             String playerName = player.getDisplayName();
-            String location = logService.LocationToString(player.getLocation());
+            String location = "Loc: " + logService.LocationToString(player.getLocation());
 
             logService.writeLog(playerName, location);
 
@@ -59,14 +63,19 @@ public class ScheduledEventsService {
                 }
                 output += cowDensity;
 
-                if (cowDensity > 5) {
-                    if (new Random().nextDouble() > 0.5) {
+                if (cowDensity > 10) {
+                    //if (new Random().nextDouble() > 0.5)
+                    {
                         Cow livingCow = (Cow) cow;
-                        livingCow.damage(0.5, nearby.get(0));
-                        livingCow.playEffect(EntityEffect.HURT);
-                        //livingCow.damage(1);
-                        //livingCow.damnearby.get(0));
+                        //Block target = livingCow.getTargetBlockExact(10);
+                        //String targetLocation = logService.LocationToString(target.getLocation());
+
+                        livingCow.damage(0.001, nearby.get(0));
+                        //livingCow.playEffect(EntityEffect.HURT);
+
+
                         output += "*"; // Tag for damage
+                        //output += " " + targetLocation;
                     }
                 }
                 output += " ";
@@ -85,10 +94,10 @@ public class ScheduledEventsService {
                 }
                 output += lambDensity;
 
-                if (lambDensity > 5) {
+                if (lambDensity > 10) {
                     if (new Random().nextDouble() > 0.5) {
                         Sheep livingSheep = (Sheep) lamb;
-                        livingSheep.damage(0.5, nearby.get(0));
+                        livingSheep.damage(1, nearby.get(0));
                         livingSheep.playEffect(EntityEffect.HURT);
                         output += "*";
                     }
