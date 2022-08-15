@@ -9,3 +9,9 @@ commands:
     description: Shows the URL of the continuously generated world map
     usage: |
            /<command>
+  resetcounters:
+    usage: |
+      /<command>
+  togglerelay:
+    usage: |
+      /<command>
