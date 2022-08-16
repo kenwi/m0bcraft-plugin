@@ -12,9 +12,11 @@ import java.util.logging.Logger;
 
 public class LogService {
     Logger logger;
+    ApplicationState state;
 
-    public LogService(JavaPlugin plugin) {
-        logger = plugin.getLogger();
+    public LogService(JavaPlugin plugin, ApplicationState state) {
+        this.logger = plugin.getLogger();
+        this.state = state;
 
         File directory = new File("mc-outbound/");
         if(!directory.exists()) {
@@ -66,6 +68,13 @@ public class LogService {
             FileWriter file = new FileWriter("mc-logs/" + name + ".txt", true);
             file.append(logLine + "\n");
             file.close();
+
+            /*if(state.containsKey("isRelayEnabled")) {
+                if(state.get("isRelayEnabled") == 1) {
+
+                    // Bukkit.broadcastMessage("[" + name + "] "  + message);
+                }
+            }*/
 
             writeLog(logLine);
 

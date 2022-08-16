@@ -1,29 +1,25 @@
 package services.m0b.m0bcraft;
 
 import org.bukkit.Bukkit;
-import org.bukkit.EntityEffect;
-import org.bukkit.entity.Cow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Sheep;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
 public class ScheduledEventsService {
     LogService logService;
+    ApplicationState state;
     JavaPlugin plugin;
     Random rng;
 
-    public ScheduledEventsService(LogService logService, JavaPlugin plugin) {
+    public ScheduledEventsService(LogService logService, JavaPlugin plugin, ApplicationState state) {
         this.logService = logService;
         this.plugin = plugin;
+        this.state = state;
     }
 
     private boolean isDay() {
@@ -34,18 +30,16 @@ public class ScheduledEventsService {
         return time > 0 && time < (12300 -rng.nextInt(1000));
     }
 
-    int i;
-
     public void registerEvents() {
+
+        logService.info("Registering location service");
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> Bukkit.getOnlinePlayers().forEach(player -> {
             String playerName = player.getDisplayName();
             String location = "Loc: " + logService.LocationToString(player.getLocation());
-
             logService.writeLog(playerName, location);
-
         }), 0L, 20 * 10);
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
+        /*Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
             if (isDay()) {
                 return;
             }
@@ -53,6 +47,7 @@ public class ScheduledEventsService {
             String output = "Cow density: ";
             Collection<Entity> cows = Bukkit.getWorld("world").getEntitiesByClasses(Cow.class);
 
+            String target = "";
             for (Entity cow : cows) {
                 List<Entity> nearby = cow.getNearbyEntities(1, 1, 1);
                 int cowDensity = 0;
@@ -78,9 +73,17 @@ public class ScheduledEventsService {
                         //output += " " + targetLocation;
                     }
                 }
+
+                Mob mob = (Mob)cow;
+                Block targetBlock = ((Mob) cow).getTargetBlockExact(10);
+                if(targetBlock != null) {
+                    target += targetBlock.getType().name() + " ";
+                }
+
                 output += " ";
             }
             logService.info(output);
+            logService.info(target);
 
             output = "Sheep density: ";
             Collection<Entity> sheep = Bukkit.getWorld("world").getEntitiesByClasses(Sheep.class);
@@ -106,8 +109,9 @@ public class ScheduledEventsService {
             }
             logService.info(output);
         }, 0L, 20 * 10);
+        */
 
-
+        logService.info("Registering discord service");
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
             try (Stream<Path> paths = Files.walk(Paths.get("mc-inbound"))) {
                 paths.filter(Files::isRegularFile).forEach(file -> {

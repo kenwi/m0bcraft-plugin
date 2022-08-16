@@ -1,58 +1,50 @@
 package services.m0b.m0bcraft;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Random;
 
 public class InventoryEventListener implements Listener {
     LogService logService;
     JavaPlugin plugin;
-    HashMap<String, Integer> itemCounter;
+    ApplicationState state;
 
-    public InventoryEventListener(LogService logService, JavaPlugin plugin, HashMap<String, Integer> counter) {
+    public InventoryEventListener(LogService logService, JavaPlugin plugin, ApplicationState state) {
         this.logService = logService;
         this.plugin = plugin;
-        this.itemCounter = counter;
+        this.state = state;
 
         logService.info("Listening to InventoryEvents");
-        itemCounter = new HashMap<>();
-
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
+        //itemCounter = new HashMap<>();
+        /*Bukkit.getScheduler().scheduleSyncRepeatingTask(this.plugin, () -> {
             int count = itemCounter.size();
-            if(count > 0) {
+            if (count > 0) {
                 itemCounter.clear();
                 logService.writeLog("HOPPER", "Counters cleared. Hoppers: " + count);
             }
         }, 0L, 20 * 60 * 30);
-
+        */
     }
 
 
     @EventHandler
     public void OnInventoryMoveItemEvent(InventoryMoveItemEvent event) {
         try {
-            Inventory source = event.getInitiator();
-            Inventory destination = event.getDestination();
+            Inventory initiator = event.getInitiator();
 
-            String message = event.getEventName() + " "
-                    + source.getType().name() + " MOVES "
-                    + event.getItem().getType().name() + " TO "
-                    + destination.getType().name() + " AT "
-                    + logService.LocationToString(source.getLocation());
+            String message = String.format("%s Item: %s Source: %s Destination: %s Initiator: %s",
+                    event.getEventName(),
+                    event.getItem().getType().name(),
+                    event.getSource().getType().name(),
+                    event.getDestination().getType().name(),
+                    event.getInitiator().getType().name()
+            );
 
             String itemName = event.getItem().getType().name().toLowerCase();
             if (!itemName.contains("ore")
@@ -69,11 +61,11 @@ public class InventoryEventListener implements Listener {
                     && !itemName.contains("quartz")
                     && !itemName.contains("gold block")) {
 
-                String location = logService.LocationToString(source.getLocation())
+                String location = logService.LocationToString(initiator.getLocation())
                         .replace(" ", "-");
-                String name = source.getType().name() + " " + location;
 
-                logService.writeLog(name, message);
+                String name = initiator.getType().name().toUpperCase();
+                logService.writeLog(name + " " + location, message);
                 return;
             }
 
@@ -87,33 +79,33 @@ public class InventoryEventListener implements Listener {
                         ChatColor.RED + "Tainted by",
                         ChatColor.RED + "mass production ;)",
                         ChatColor.GRAY + formattedDate,
-                        ChatColor.GRAY + logService.LocationToString(source.getLocation())
+                        ChatColor.GRAY + logService.LocationToString(initiator.getLocation())
                 };
 
-                String location = logService.LocationToString(source.getLocation())
+                String location = logService.LocationToString(initiator.getLocation())
                         .replace(" ", "-");
+
                 String itemKey = itemName + "-" + location;
-                if(!itemCounter.containsKey(itemKey))
+
+                /*
+                if (!itemCounter.containsKey(itemKey))
                     itemCounter.put(itemKey, 0);
 
                 int tainted = itemCounter.get(itemKey);
                 int oneStack = 64;
-                int numberOfStacks = 2; // 128
+                int numberOfStacks = 8; // 128
                 int replaceDestinationLimit = 2; // 256
                 int replaceSourceLimit = 2; // 512
 
                 message += " Count: " + ++tainted
                         + " Limits: "
-                        + "[" + oneStack * numberOfStacks + "] "
-                        + "[" + oneStack * numberOfStacks * replaceDestinationLimit + "] "
-                        + "[" + oneStack * numberOfStacks * replaceDestinationLimit * replaceSourceLimit + "]";
+                        + "[" + oneStack * numberOfStacks + "] ";
 
                 itemCounter.put(itemKey, tainted);
 
                 ItemMeta meta = event.getItem().getItemMeta();
                 if (!meta.hasLore() && tainted > oneStack * numberOfStacks && destination.getType() == InventoryType.CHEST) {
-                    if(new Random().nextDouble() < 0.80)
-                    {
+                    if (new Random().nextDouble() < 0.80) {
                         meta.setLore(Arrays.asList(lore));
                         event.getItem().setItemMeta(meta);
                         message += " TAINTED";
@@ -137,12 +129,12 @@ public class InventoryEventListener implements Listener {
                         String blockType = block.getType().name();
                         message += " REPLACED " + blockType;
                     }
-                }
+                }*/
             }
 
-            String location = logService.LocationToString(source.getLocation())
+            String location = logService.LocationToString(initiator.getLocation())
                     .replace(" ", "-");
-            String name = source.getType().name() + "-" + location;
+            String name = initiator.getType().name() + "-" + location;
             logService.writeLog(name, message);
         } catch (Exception ex) {
             logService.info("An error occurred.");

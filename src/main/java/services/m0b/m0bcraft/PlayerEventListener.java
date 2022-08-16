@@ -106,13 +106,6 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void OnPlayerInteractEvent(PlayerInteractEvent event) {
         try {
-            /*String playerName = event.getPlayer().getDisplayName();
-            String message = event.getAction().name();
-
-            Block block;
-            if ((block = event.getClickedBlock()) != null) {
-                message += " " + logService.LocationToString(block.getState().getLocation());
-            }*/
             String name = event.getPlayer().getName();
             String message = event.getEventName() + " "
                     + event.getAction().name() + " ";

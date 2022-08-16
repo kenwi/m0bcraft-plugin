@@ -5,41 +5,40 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-
 public final class M0bcraft extends JavaPlugin {
     LogService logService;
+    ApplicationState state;
     ScheduledEventsService scheduledEventsService;
-    HashMap<String, Integer> counter;
 
     @Override
     public void onEnable() {
-        counter = new HashMap<>();
-        logService = new LogService(this);
-        scheduledEventsService = new ScheduledEventsService(logService, this);
-        scheduledEventsService.registerEvents();
+        state = new ApplicationState();
+        logService = new LogService(this, state);
+        scheduledEventsService = new ScheduledEventsService(logService, this, state);
 
         PluginManager pluginManager = Bukkit.getPluginManager();
         pluginManager.registerEvents(new PlayerEventListener(logService), this);
         pluginManager.registerEvents(new BlockEventListener(logService), this);
-        pluginManager.registerEvents(new InventoryEventListener(logService, this, counter), this);
+        pluginManager.registerEvents(new InventoryEventListener(logService, this, state), this);
+        scheduledEventsService.registerEvents();
 
-        PluginCommand command = this.getCommand("map");
-        if(command != null) {
+        PluginCommand command;
+        if((command = this.getCommand("map")) != null) {
             command.setExecutor(new MapCommand());
         }
-
         if((command = getCommand("resetcounters")) != null){
-            command.setExecutor(new ResetCountersCommand(counter, logService));
+            command.setExecutor(new ResetCountersCommand(logService, state));
         }
-
+        if((command = getCommand("togglerelay")) != null){
+            command.setExecutor(new ToggleRelayCommand(logService, state));
+        }
         getLogger().info("Started");
     }
 
     @Override
     public void onDisable() {
+        state = null;
         logService = null;
-        scheduledEventsService = null;
 
         getLogger().info("Stopped");
     }

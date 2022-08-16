@@ -5,16 +5,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-
 public class ResetCountersCommand implements CommandExecutor {
+    LogService logService;
+    ApplicationState state;
 
-    private final HashMap<String, Integer> counter;
-    private final LogService logService;
-
-    public ResetCountersCommand(HashMap<String, Integer> counter, LogService logService) {
-        this.counter = counter;
+    public ResetCountersCommand(LogService logService, ApplicationState state) {
         this.logService = logService;
+        this.state = state;
     }
 
     @Override
@@ -32,7 +29,7 @@ public class ResetCountersCommand implements CommandExecutor {
     }
 
     void Execute(String executingEntity) {
-        counter.clear();
+        //counter.clear();
         logService.writeLog(executingEntity, "Reset counters");
     }
 }
